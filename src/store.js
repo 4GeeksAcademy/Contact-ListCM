@@ -1,32 +1,63 @@
-export const initialStore=()=>{
-  return{
+export const initialStore = () => {
+  const favsGuardados = localStorage.getItem("favoritos");
+  return {
     message: null,
-    todos: [
-      {
-        id: 1,
-        title: "Make the bed",
-        background: null,
-      },
-      {
-        id: 2,
-        title: "Do my homework",
-        background: null,
-      }
-    ]
-  }
-}
+    contacts: [],
+    favorites: favsGuardados ? JSON.parse(favsGuardados) : []
+  };
+};
+
+
 
 export default function storeReducer(store, action = {}) {
-  switch(action.type){
-    case 'add_task':
+  switch (action.type) {
+    case 'ADD_CONTACT': {
+      return {
+        ...store,
+        contacts: [...store.contacts, action.payload]
+      };
+    }
 
-      const { id,  color } = action.payload
+    case 'SET_CONTACTS':
+      return {
+        ...store,
+        contacts: action.payload
+      };
+
+    case "DELETE_CONTACT":
+      return {
+        ...store,
+        contacts: store.contacts.filter((c) => c.id !== action.payload)
+      };
+
+    case "UPDATE_CONTACT":
+      return {
+        ...store,
+        contacts: store.contacts.map((contact) =>
+          contact.id === action.payload.id ? action.payload : contact
+        )
+      };
+
+    case "TOGGLE_FAVORITE": {
+      const contacto = action.payload;
+      const alreadyFav = store.favorites.find((c) => c.id === contacto.id);
+
+      const newFavorites = alreadyFav
+        ? store.favorites.filter((c) => c.id !== contacto.id)
+        : [...store.favorites, contacto];
+
+      localStorage.setItem("favoritos", JSON.stringify(newFavorites));
 
       return {
         ...store,
-        todos: store.todos.map((todo) => (todo.id === id ? { ...todo, background: color } : todo))
+        favorites: newFavorites
       };
+    }
+
     default:
-      throw Error('Unknown action.');
-  }    
+      console.warn("Unknown action type:", action.type);
+      return store;
+
+  }
 }
+
